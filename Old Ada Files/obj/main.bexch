@@ -1,0 +1,19 @@
+[GENERATED OBJECT FILE]
+b__main.o
+[PROJECT FILES]
+\\pfa.education\utccstudentusers$\18u-rpietras\Documents\github.com\MelonIs45\NEA\Shell.gpr
+20210622114018 3736cf5d1beb7e6cb0e7b0f124b6c2fe
+[BOUND OBJECT FILES]
+\\pfa.education\utccstudentusers$\18u-rpietras\Documents\github.com\MelonIs45\NEA\obj\main.o
+[GENERATED SOURCE FILES]
+b__main.ads
+b__main.adb
+b__main.ali
+[RESULTING OPTIONS]
+-L\\pfa.education\utccstudentusers$\18u-rpietras\Documents\github.com\MelonIs45\NEA\obj\
+-L\\pfa.education\utccstudentusers$\18u-rpietras\Documents\github.com\MelonIs45\NEA\obj\
+-LC:/users/18u-rpietras/gnat/lib/gcc/x86_64-w64-mingw32/10.3.1/adalib/
+-static
+-static-libgcc
+C:/users/18u-rpietras/gnat/lib/gcc/x86_64-w64-mingw32/10.3.1/adalib/libgnat.a
+-Wl,--stack=0x2000000
