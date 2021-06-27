@@ -41,8 +41,6 @@ func init() {
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Println(os.Getenv("Path"))
-
 	for {
 		userName, _ := user.Current()
 		hostName, _ := os.Hostname()
