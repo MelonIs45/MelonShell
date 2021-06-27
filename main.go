@@ -14,6 +14,8 @@ import (
 )
 
 var CurDir, _ = os.Getwd()
+var Paths = strings.Split(strings.ReplaceAll(os.Getenv("Path"), "\n", ""), ";")
+var ProgramPath string
 
 var colorReset = "\033[0m"
 var colorRed = "\033[31m"
@@ -39,12 +41,9 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println(os.Getenv("Path"))
-	var paths []string
-	path, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
-	} else {
-		paths = append(paths, path)
+
+	for _, v := range Paths {
+		fmt.Println(v)
 	}
 
 	for _, e := range os.Environ() {
@@ -69,7 +68,7 @@ func main() {
 			split := strings.Split(input, " ")
 
 			if strings.HasPrefix(split[0], "./") {
-				ExecutePathProgram(split[0])
+				ExecutePathProgram(split[0], split)
 			}
 			if strings.HasPrefix(split[0], "cd") {
 				ChangeDirectory(split[1:])
@@ -78,12 +77,11 @@ func main() {
 				ListDirectory()
 			}
 		}
-
 		fmt.Println()
 	}
 }
 
-func ExecutePathProgram(program string) {
+func ExecutePathProgram(program string, command []string) {
 	files, err := ioutil.ReadDir(CurDir)
 	if err != nil {
 		log.Fatal(err)
@@ -94,15 +92,29 @@ func ExecutePathProgram(program string) {
 		fileRun += ".exe"
 	}
 
-	fmt.Println(CurDir + "\\" + fileRun)
-
 	if dirContains(files, fileRun) {
-		cmdInstance := exec.Command(CurDir+"\\"+fileRun, "")
+		cmdInstance := exec.Command(CurDir+"\\"+fileRun, command[1:]...)
 		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
+		cmdInstance.Stdout = os.Stdout
+		cmdInstance.Stderr = os.Stderr
 		err = cmdInstance.Start()
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println(cmdInstance.Stdout)
+	} else if programInPath(fileRun) {
+		cmdInstance := exec.Command(ProgramPath+"\\"+fileRun, command[1:]...)
+		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
+		cmdInstance.Stdout = os.Stdout
+		cmdInstance.Stderr = os.Stderr
+		err = cmdInstance.Start()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(cmdInstance.Stdout)
+	} else {
+		fmt.Println(colorRed, "File \""+fileRun+"\" is not recognised!")
+		fmt.Print(colorReset)
 	}
 }
 
@@ -133,7 +145,9 @@ func ChangeDirectory(path []string) {
 	}
 
 	CurDir = strings.TrimSuffix(CurDir, "\n")
-	CheckDir(CurDir, originalDir)
+	if !CheckDir(CurDir, true) {
+		CurDir = strings.Join(originalDir, "\\")
+	}
 }
 
 func ListDirectory() {
@@ -164,7 +178,6 @@ func ListDirectory() {
 			fmt.Print(colorYellow, file.Name()+"\n")
 			continue
 		}
-
 	}
 	fmt.Print(colorReset)
 }
