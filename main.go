@@ -6,9 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"os/user"
 	"strings"
 	_ "strings"
+	"syscall"
 )
 
 var CurDir, _ = os.Getwd()
@@ -19,7 +21,6 @@ var colorGreen = "\033[32m"
 var colorYellow = "\033[33m"
 var colorBlue = "\033[34m"
 var colorPurple = "\033[35m"
-var colorCyan = "\033[36m"
 var colorWhite = "\033[37m"
 
 //func init() {
@@ -30,7 +31,6 @@ var colorWhite = "\033[37m"
 //		colorYellow = ""
 //		colorBlue   = ""
 //		colorPurple = ""
-//		colorCyan   = ""
 //		colorWhite  = ""
 //	}
 //}
@@ -57,19 +57,24 @@ func main() {
 		userName, _ := user.Current()
 		hostName, _ := os.Hostname()
 
-		fmt.Print(strings.Split(userName.Username, "\\")[1] + "@" + hostName + ": " + CurDir + "\n> ")
+		fmt.Print(colorGreen, strings.Split(userName.Username, "\\")[1]+"@"+hostName)
+		fmt.Print(colorWhite, ": ")
+		fmt.Print(colorPurple, CurDir)
+		fmt.Print(colorWhite, "\n> ")
+		fmt.Print(colorReset)
+
 		input, _ := reader.ReadString('\n')
 
 		if input != "" {
-			exec := strings.Split(input, " ")
+			split := strings.Split(input, " ")
 
-			if strings.HasPrefix(exec[0], "./") {
-				ExecutePathProgram(exec[0])
+			if strings.HasPrefix(split[0], "./") {
+				ExecutePathProgram(split[0])
 			}
-			if strings.HasPrefix(exec[0], "cd") {
-				ChangeDirectory(exec[1:])
+			if strings.HasPrefix(split[0], "cd") {
+				ChangeDirectory(split[1:])
 			}
-			if strings.HasPrefix(exec[0], "ls") {
+			if strings.HasPrefix(split[0], "ls") {
 				ListDirectory()
 			}
 		}
@@ -79,28 +84,61 @@ func main() {
 }
 
 func ExecutePathProgram(program string) {
-	fmt.Print(strings.Split(program, "./")[1])
+	files, err := ioutil.ReadDir(CurDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fileRun := strings.TrimSuffix(strings.Split(program, "./")[1], "\n")
+	if !strings.HasSuffix(fileRun, ".exe") {
+		fileRun += ".exe"
+	}
+
+	fmt.Println(CurDir + "\\" + fileRun)
+
+	if dirContains(files, fileRun) {
+		cmdInstance := exec.Command(CurDir+"\\"+fileRun, "")
+		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
+		err = cmdInstance.Start()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
 
 func ChangeDirectory(path []string) {
-	splitDir := strings.Split(CurDir, "\\")
-
-	if strings.HasPrefix(path[0], "../") || strings.HasPrefix(path[0], "..") {
-		CurDir = strings.Join(splitDir[:len(splitDir)-1], "\\")
-		return
-	}
+	originalDir := strings.Split(CurDir, "\\")
+	structureAction := NewStructure(path[0])
 
 	if strings.HasPrefix(path[0], "~") {
 		CurDir, _ = os.Getwd()
 		return
 	}
 
-	CurDir += "\\" + path[0]
+	if len(structureAction.dirChanges) == 1 && strings.TrimSuffix(structureAction.dirChanges[0], "\n") == ".." {
+		CurDir = strings.Join(originalDir[:len(originalDir)-1], "\\")
+		return
+	}
+
+	for _, dir := range structureAction.dirChanges {
+		splitDir := strings.Split(CurDir, "\\")
+		switch dir {
+		case "..":
+			CurDir = strings.Join(splitDir[:len(splitDir)-1], "\\")
+		default:
+			if !(dir == "\n") {
+				CurDir += "\\" + dir
+			}
+		}
+	}
+
 	CurDir = strings.TrimSuffix(CurDir, "\n")
+	CheckDir(CurDir, originalDir)
 }
 
 func ListDirectory() {
 	files, err := ioutil.ReadDir(CurDir)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -118,14 +156,12 @@ func ListDirectory() {
 			continue
 		}
 
-		if !strings.HasPrefix(file.Name(), ".") {
+		if strings.HasPrefix(file.Name(), ".") {
+			fmt.Println(colorGreen, file.Name())
+			continue
+		} else {
 			fmt.Print(colorWhite, "./")
 			fmt.Print(colorYellow, file.Name()+"\n")
-			continue
-		}
-
-		if strings.Contains(file.Name(), ".") {
-			fmt.Println(colorGreen, file.Name())
 			continue
 		}
 
