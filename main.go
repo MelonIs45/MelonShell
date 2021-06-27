@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"runtime"
 	"strings"
 	_ "strings"
 	"syscall"
@@ -25,32 +26,22 @@ var colorBlue = "\033[34m"
 var colorPurple = "\033[35m"
 var colorWhite = "\033[37m"
 
-//func init() {
-//	if runtime.GOOS == "windows" {
-//		colorReset  = ""
-//		colorRed    = ""
-//		colorGreen  = ""
-//		colorYellow = ""
-//		colorBlue   = ""
-//		colorPurple = ""
-//		colorWhite  = ""
-//	}
-//}
+func init() {
+	if runtime.GOOS == "windows" {
+		colorReset = ""
+		colorRed = ""
+		colorGreen = ""
+		colorYellow = ""
+		colorBlue = ""
+		colorPurple = ""
+		colorWhite = ""
+	}
+}
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println(os.Getenv("Path"))
-
-	for _, v := range Paths {
-		fmt.Println(v)
-	}
-
-	for _, e := range os.Environ() {
-		if e == "Path" {
-			fmt.Println(e)
-		}
-	}
 
 	for {
 		userName, _ := user.Current()
@@ -96,8 +87,9 @@ func ExecutePathProgram(program string, command []string) {
 		cmdInstance := exec.Command(CurDir+"\\"+fileRun, command[1:]...)
 		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
 		cmdInstance.Stdout = os.Stdout
+		cmdInstance.Stdin = os.Stdin
 		cmdInstance.Stderr = os.Stderr
-		err = cmdInstance.Start()
+		err = cmdInstance.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -106,12 +98,14 @@ func ExecutePathProgram(program string, command []string) {
 		cmdInstance := exec.Command(ProgramPath+"\\"+fileRun, command[1:]...)
 		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
 		cmdInstance.Stdout = os.Stdout
+		cmdInstance.Stdin = os.Stdin
 		cmdInstance.Stderr = os.Stderr
-		err = cmdInstance.Start()
+		err = cmdInstance.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(cmdInstance.Stdout)
+
 	} else {
 		fmt.Println(colorRed, "File \""+fileRun+"\" is not recognised!")
 		fmt.Print(colorReset)
@@ -160,13 +154,13 @@ func ListDirectory() {
 	for _, file := range files {
 		if file.IsDir() && strings.Contains(file.Name(), ".") {
 			fmt.Print(colorRed, file.Name())
-			fmt.Print(colorWhite, "\\\n")
+			fmt.Print(colorWhite, "/\n")
 			continue
 		}
 
 		if file.IsDir() {
 			fmt.Print(colorBlue, file.Name())
-			fmt.Print(colorWhite, "\\\n")
+			fmt.Print(colorWhite, "/\n")
 			continue
 		}
 
