@@ -222,25 +222,19 @@ func ShowHelp(prop []string) {
 	if len(prop) == 0 {
 		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
 		fmt.Println(colorReset)
-
 		fmt.Print(colorWhite, "MelonShell Help")
 		fmt.Println(colorReset)
-
 		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
 		fmt.Println(colorReset)
-
 		fmt.Print(colorWhite, "Change Directory: ")
 		fmt.Print(colorYellow, "cd [ .. | ../ | <folder-name> ]")
 		fmt.Println(colorReset)
-
 		fmt.Print(colorWhite, "List Directory: ")
 		fmt.Print(colorYellow, "ls")
 		fmt.Println(colorReset)
-
 		fmt.Print(colorWhite, "Run Program: ")
 		fmt.Print(colorYellow, "./[ app-name ]")
 		fmt.Println(colorReset)
-
 
 		return
 	}
