@@ -8,13 +8,13 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"runtime"
 	"strings"
 	_ "strings"
 	"syscall"
 )
 
 var CurDir, _ = os.Getwd()
+var ShellVer = "v0.0.1"
 var Paths = strings.Split(strings.ReplaceAll(os.Getenv("Path"), "\n", ""), ";")
 var ProgramPath string
 
@@ -26,17 +26,17 @@ var colorBlue = "\033[34m"
 var colorPurple = "\033[35m"
 var colorWhite = "\033[37m"
 
-func init() {
-	if runtime.GOOS == "windows" {
-		colorReset = ""
-		colorRed = ""
-		colorGreen = ""
-		colorYellow = ""
-		colorBlue = ""
-		colorPurple = ""
-		colorWhite = ""
-	}
-}
+//func init() {
+//	if runtime.GOOS == "windows" {
+//		colorReset = ""
+//		colorRed = ""
+//		colorGreen = ""
+//		colorYellow = ""
+//		colorBlue = ""
+//		colorPurple = ""
+//		colorWhite = ""
+//	}
+//}
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
@@ -64,6 +64,12 @@ func main() {
 			}
 			if strings.HasPrefix(split[0], "ls") {
 				ListDirectory()
+			}
+			if strings.HasPrefix(split[0], "db") || strings.HasPrefix(split[0], "debug") {
+				GetDebugInfo(split[1:])
+			}
+			if strings.HasPrefix(split[0], "h") || strings.HasPrefix(split[0], "help") {
+				ShowHelp(split[1:])
 			}
 		}
 		fmt.Println()
@@ -172,4 +178,70 @@ func ListDirectory() {
 		}
 	}
 	fmt.Print(colorReset)
+}
+
+func GetDebugInfo(prop []string) {
+	var curDir, _ = os.Getwd()
+	var userName, _ = user.Current()
+	var hostName, _ = os.Hostname()
+
+	if len(prop) == 0 {
+		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "MelonShell ")
+		fmt.Print(colorYellow, ShellVer)
+		fmt.Println(colorReset)
+		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "User: ")
+		fmt.Print(colorYellow, userName.Name)
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "Host: ")
+		fmt.Print(colorYellow, hostName)
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "Shell Location: ")
+		fmt.Print(colorYellow, curDir)
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "Current Working Directory: ")
+		fmt.Print(colorYellow, CurDir)
+
+		return
+	}
+
+	switch strings.TrimSuffix(prop[0], "\n") {
+	case "cwd":
+		fmt.Println(colorYellow, curDir)
+	case "ver":
+		fmt.Println(colorYellow, ShellVer)
+	case "loc":
+		fmt.Println(colorYellow, CurDir)
+	}
+}
+
+func ShowHelp(prop []string) {
+	if len(prop) == 0 {
+		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
+		fmt.Println(colorReset)
+
+		fmt.Print(colorWhite, "MelonShell Help")
+		fmt.Println(colorReset)
+
+		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
+		fmt.Println(colorReset)
+
+		fmt.Print(colorWhite, "Change Directory: ")
+		fmt.Print(colorYellow, "cd [ .. | ../ | <folder-name> ]")
+		fmt.Println(colorReset)
+
+		fmt.Print(colorWhite, "List Directory: ")
+		fmt.Print(colorYellow, "ls")
+		fmt.Println(colorReset)
+
+		fmt.Print(colorWhite, "Run Program: ")
+		fmt.Print(colorYellow, "./[ app-name ]")
+		fmt.Println(colorReset)
+
+
+		return
+	}
 }
