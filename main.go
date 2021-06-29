@@ -3,6 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/dustin/go-humanize"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/mem"
 	"io/ioutil"
 	"log"
 	"os"
@@ -70,6 +75,9 @@ func main() {
 			}
 			if strings.HasPrefix(split[0], "h") || strings.HasPrefix(split[0], "help") {
 				ShowHelp(split[1:])
+			}
+			if strings.HasPrefix(split[0], "sys") {
+				ShowSystemInfo()
 			}
 		}
 		fmt.Println()
@@ -235,7 +243,54 @@ func ShowHelp(prop []string) {
 		fmt.Print(colorWhite, "Run Program: ")
 		fmt.Print(colorYellow, "./[ app-name ]")
 		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "Show System Information: ")
+		fmt.Print(colorYellow, "sys")
+		fmt.Println(colorReset)
 
 		return
 	}
+}
+
+func ShowSystemInfo() {
+	const unknown = "Unknown"
+	osName, cpuName, ramAmount, diskAmount := unknown, unknown, unknown, unknown
+
+	hStat, err := host.Info()
+	if err == nil {
+		osName = hStat.Platform + " " + hStat.PlatformVersion
+	}
+	// rewrite
+	cStats, err := cpu.Info()
+	if err == nil && len(cStats) > 0 {
+		cpuName = fmt.Sprintf("%s, %d cores", cStats[0].ModelName, cStats[0].Cores)
+	}
+
+	mStat, err := mem.VirtualMemory()
+	if err == nil {
+		ramAmount = humanize.IBytes(mStat.Total)
+	}
+
+	dStat, err := disk.Usage("C:\\")
+	if err == nil {
+		diskAmount = humanize.IBytes(dStat.Total)
+	}
+
+	fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
+	fmt.Println(colorReset)
+	fmt.Print(colorWhite, "System Information")
+	fmt.Println(colorReset)
+	fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
+	fmt.Println(colorReset)
+	fmt.Print(colorWhite, "Operating System: ")
+	fmt.Print(colorYellow, osName)
+	fmt.Println(colorReset)
+	fmt.Print(colorWhite, "CPU: ")
+	fmt.Print(colorYellow, cpuName)
+	fmt.Println(colorReset)
+	fmt.Print(colorWhite, "RAM: ")
+	fmt.Print(colorYellow, ramAmount)
+	fmt.Println(colorReset)
+	fmt.Print(colorWhite, "Drive: ")
+	fmt.Print(colorYellow, diskAmount)
+	fmt.Println(colorReset)
 }
