@@ -8,18 +8,18 @@ import (
 	"strings"
 )
 
-func dirContains(s []os.FileInfo, program string) bool {
-	for _, v := range s {
-		if v.Name() == program {
-			return true
-		}
-	}
-	return false
-}
+//func dirContains(s []os.FileInfo, program string) bool {
+//	for _, v := range s {
+//		if v.Name() == program {
+//			return true
+//		}
+//	}
+//	return false
+//}
 
 func programInPath(program string) bool {
 	for _, path := range Paths {
-		if strings.HasSuffix(path, ".exe") || !CheckDir(path, false) { // if its a folder that exists
+		if strings.HasSuffix(path, ".exe") || !CheckDir(path, false) { // if its not a folder or it also doesnt exist
 			continue
 		}
 

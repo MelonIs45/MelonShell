@@ -44,6 +44,7 @@ var colorWhite = "\033[37m"
 //}
 
 func main() {
+	Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
@@ -85,38 +86,21 @@ func main() {
 }
 
 func ExecutePathProgram(program string, command []string) {
-	files, err := ioutil.ReadDir(CurDir)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	fileRun := strings.TrimSuffix(strings.Split(program, "./")[1], "\n")
 	if !strings.HasSuffix(fileRun, ".exe") {
 		fileRun += ".exe"
 	}
 
-	if dirContains(files, fileRun) {
-		cmdInstance := exec.Command(CurDir+"\\"+fileRun, command[1:]...)
-		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
-		cmdInstance.Stdout = os.Stdout
-		cmdInstance.Stdin = os.Stdin
-		cmdInstance.Stderr = os.Stderr
-		err = cmdInstance.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(cmdInstance.Stdout)
-	} else if programInPath(fileRun) {
+	if programInPath(fileRun) {
 		cmdInstance := exec.Command(ProgramPath+"\\"+fileRun, command[1:]...)
 		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
 		cmdInstance.Stdout = os.Stdout
 		cmdInstance.Stdin = os.Stdin
 		cmdInstance.Stderr = os.Stderr
-		err = cmdInstance.Run()
+		err := cmdInstance.Run()
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(colorRed, "Program Exited (255)")
 		}
-		fmt.Println(cmdInstance.Stdout)
 
 	} else {
 		fmt.Println(colorRed, "File \""+fileRun+"\" is not recognised!")
@@ -135,6 +119,8 @@ func ChangeDirectory(path []string) {
 
 	if len(structureAction.dirChanges) == 1 && strings.TrimSuffix(structureAction.dirChanges[0], "\n") == ".." {
 		CurDir = strings.Join(originalDir[:len(originalDir)-1], "\\")
+		Paths = Paths[:len(Paths)-1]
+		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
 		return
 	}
 
@@ -143,16 +129,24 @@ func ChangeDirectory(path []string) {
 		switch dir {
 		case "..":
 			CurDir = strings.Join(splitDir[:len(splitDir)-1], "\\")
+			Paths = Paths[:len(Paths)-1]
+			Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
 		default:
 			if !(dir == "\n") {
 				CurDir += "\\" + dir
+				Paths = Paths[:len(Paths)-1]
+				Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
 			}
 		}
 	}
 
 	CurDir = strings.TrimSuffix(CurDir, "\n")
+	Paths = Paths[:len(Paths)-1]
+	Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
 	if !CheckDir(CurDir, true) {
 		CurDir = strings.Join(originalDir, "\\")
+		Paths = Paths[:len(Paths)-1]
+		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
 	}
 }
 
@@ -218,11 +212,13 @@ func GetDebugInfo(prop []string) {
 
 	switch strings.TrimSuffix(prop[0], "\n") {
 	case "cwd":
-		fmt.Println(colorYellow, curDir)
+		fmt.Println(colorYellow, CurDir)
 	case "ver":
 		fmt.Println(colorYellow, ShellVer)
 	case "loc":
-		fmt.Println(colorYellow, CurDir)
+		fmt.Println(colorYellow, curDir)
+	case "path":
+		fmt.Println(colorYellow, Paths)
 	}
 }
 
