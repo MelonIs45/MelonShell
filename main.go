@@ -62,6 +62,10 @@ func main() {
 		if input != "" {
 			split := strings.Split(input, " ")
 
+			for i := range split {
+				split[i] = strings.TrimSuffix(split[i], "\n")
+			}
+
 			if strings.HasPrefix(split[0], "./") {
 				ExecutePathProgram(split[0], split)
 			}
@@ -79,6 +83,9 @@ func main() {
 			}
 			if strings.HasPrefix(split[0], "sys") {
 				ShowSystemInfo()
+			}
+			if strings.HasPrefix(split[0], "exit") {
+				os.Exit(1)
 			}
 		}
 		fmt.Println()
