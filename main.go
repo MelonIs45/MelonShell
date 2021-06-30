@@ -97,9 +97,10 @@ func ExecutePathProgram(program string, command []string) {
 		cmdInstance.Stdout = os.Stdout
 		cmdInstance.Stdin = os.Stdin
 		cmdInstance.Stderr = os.Stderr
+		cmdInstance.Dir = CurDir
 		err := cmdInstance.Run()
 		if err != nil {
-			fmt.Println(colorRed, "Program Exited (255)")
+			fmt.Println(err)
 		}
 
 	} else {
@@ -132,7 +133,7 @@ func ChangeDirectory(path []string) {
 			Paths = Paths[:len(Paths)-1]
 			Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
 		default:
-			if !(dir == "\n") {
+			if dir != "\n" {
 				CurDir += "\\" + dir
 				Paths = Paths[:len(Paths)-1]
 				Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
@@ -204,14 +205,17 @@ func GetDebugInfo(prop []string) {
 		fmt.Print(colorWhite, "Shell Location: ")
 		fmt.Print(colorYellow, curDir)
 		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Current Working Directory: ")
+		fmt.Print(colorWhite, "Current Directory: ")
 		fmt.Print(colorYellow, CurDir)
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "%PATH% Environment Variable: ")
+		fmt.Print(colorYellow, Paths)
 
 		return
 	}
 
 	switch strings.TrimSuffix(prop[0], "\n") {
-	case "cwd":
+	case "dir":
 		fmt.Println(colorYellow, CurDir)
 	case "ver":
 		fmt.Println(colorYellow, ShellVer)
@@ -241,6 +245,9 @@ func ShowHelp(prop []string) {
 		fmt.Println(colorReset)
 		fmt.Print(colorWhite, "Show System Information: ")
 		fmt.Print(colorYellow, "sys")
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "Show Debug Information: ")
+		fmt.Print(colorYellow, "db <dir | ver | loc | path>")
 		fmt.Println(colorReset)
 
 		return
