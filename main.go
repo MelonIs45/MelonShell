@@ -87,6 +87,9 @@ func main() {
 			if strings.HasPrefix(split[0], "exit") {
 				os.Exit(1)
 			}
+			if strings.HasPrefix(split[0], "mkdir") {
+				MakeDir(split[1])
+			}
 		}
 		fmt.Println()
 	}
@@ -190,6 +193,10 @@ func ListDirectory() {
 	fmt.Print(colorReset)
 }
 
+func MakeDir(folder string) {
+	os.MkdirAll(folder, os.ModePerm)
+}
+
 func GetDebugInfo(prop []string) {
 	var curDir, _ = os.Getwd()
 	var userName, _ = user.Current()
@@ -242,7 +249,7 @@ func ShowHelp(prop []string) {
 		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
 		fmt.Println(colorReset)
 		fmt.Print(colorWhite, "Change Directory: ")
-		fmt.Print(colorYellow, "cd [ .. | ../ | <folder-name> ]")
+		fmt.Print(colorYellow, "cd [ .. | ../ | < folder-name > ]")
 		fmt.Println(colorReset)
 		fmt.Print(colorWhite, "List Directory: ")
 		fmt.Print(colorYellow, "ls")
@@ -254,7 +261,13 @@ func ShowHelp(prop []string) {
 		fmt.Print(colorYellow, "sys")
 		fmt.Println(colorReset)
 		fmt.Print(colorWhite, "Show Debug Information: ")
-		fmt.Print(colorYellow, "db <dir | ver | loc | path>")
+		fmt.Print(colorYellow, "db < dir | ver | loc | path >")
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "Make New Directory: ")
+		fmt.Print(colorYellow, "mkdir [ name ]")
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "Delete Folder/File: ")
+		fmt.Print(colorYellow, "rm [ name ]")
 		fmt.Println(colorReset)
 
 		return
