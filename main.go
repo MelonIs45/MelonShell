@@ -90,6 +90,9 @@ func main() {
 			if strings.HasPrefix(split[0], "mkdir") {
 				MakeDir(split[1])
 			}
+			if strings.HasPrefix(split[0], "rm") {
+				DelItem(split[1:])
+			}
 		}
 		fmt.Println()
 	}
@@ -122,6 +125,11 @@ func ExecutePathProgram(program string, command []string) {
 func ChangeDirectory(path []string) {
 	originalDir := strings.Split(CurDir, "\\")
 	structureAction := NewStructure(path[0])
+
+	//FIX
+	if strings.Contains(path[0], ":") {
+		CurDir = strings.Join(path, "\\")
+	}
 
 	if strings.HasPrefix(path[0], "~") {
 		CurDir, _ = os.Getwd()
@@ -195,6 +203,25 @@ func ListDirectory() {
 
 func MakeDir(folder string) {
 	os.MkdirAll(folder, os.ModePerm)
+}
+
+func DelItem(pathArr []string) {
+
+	path := NewStructure(pathArr[0])
+
+	if len(path.dirChanges) == 1 {
+		if !CheckDir(CurDir+"\\"+strings.TrimSuffix(path.dirChanges[0], "\n"), true) {
+			return
+		}
+		os.RemoveAll(CurDir + "\\" + strings.TrimSuffix(path.dirChanges[0], "\n"))
+		return
+	} else {
+		if !CheckDir(CurDir+"\\"+strings.Join(path.dirChanges, "\\"), true) {
+			return
+		}
+		os.RemoveAll(CurDir + "\\" + strings.Join(path.dirChanges, "\\"))
+		return
+	}
 }
 
 func GetDebugInfo(prop []string) {
