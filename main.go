@@ -126,13 +126,15 @@ func ChangeDirectory(path []string) {
 	originalDir := strings.Split(CurDir, "\\")
 	structureAction := NewStructure(path[0])
 
-	//FIX
 	if strings.Contains(path[0], ":") {
 		CurDir = strings.Join(path, "\\")
+		ValidateDir(originalDir)
+		return
 	}
 
 	if strings.HasPrefix(path[0], "~") {
 		CurDir, _ = os.Getwd()
+		ValidateDir(originalDir)
 		return
 	}
 
@@ -140,6 +142,7 @@ func ChangeDirectory(path []string) {
 		CurDir = strings.Join(originalDir[:len(originalDir)-1], "\\")
 		Paths = Paths[:len(Paths)-1]
 		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
+		ValidateDir(originalDir)
 		return
 	}
 
@@ -162,7 +165,12 @@ func ChangeDirectory(path []string) {
 	CurDir = strings.TrimSuffix(CurDir, "\n")
 	Paths = Paths[:len(Paths)-1]
 	Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
-	if !CheckDir(CurDir, true) {
+
+	ValidateDir(originalDir)
+}
+
+func ValidateDir(originalDir []string) {
+	if !DirExists(CurDir, true) {
 		CurDir = strings.Join(originalDir, "\\")
 		Paths = Paths[:len(Paths)-1]
 		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
@@ -170,7 +178,7 @@ func ChangeDirectory(path []string) {
 }
 
 func ListDirectory() {
-	files, err := ioutil.ReadDir(CurDir)
+	files, err := ioutil.ReadDir(CurDir + "\\")
 
 	if err != nil {
 		log.Fatal(err)
@@ -210,13 +218,13 @@ func DelItem(pathArr []string) {
 	path := NewStructure(pathArr[0])
 
 	if len(path.dirChanges) == 1 {
-		if !CheckDir(CurDir+"\\"+strings.TrimSuffix(path.dirChanges[0], "\n"), true) {
+		if !DirExists(CurDir+"\\"+strings.TrimSuffix(path.dirChanges[0], "\n"), true) {
 			return
 		}
 		os.RemoveAll(CurDir + "\\" + strings.TrimSuffix(path.dirChanges[0], "\n"))
 		return
 	} else {
-		if !CheckDir(CurDir+"\\"+strings.Join(path.dirChanges, "\\"), true) {
+		if !DirExists(CurDir+"\\"+strings.Join(path.dirChanges, "\\"), true) {
 			return
 		}
 		os.RemoveAll(CurDir + "\\" + strings.Join(path.dirChanges, "\\"))

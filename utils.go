@@ -19,7 +19,7 @@ import (
 
 func programInPath(program string) bool {
 	for _, path := range Paths {
-		if strings.HasSuffix(path, ".exe") || !CheckDir(path, false) { // if its not a folder or it also doesnt exist
+		if strings.HasSuffix(path, ".exe") || !DirExists(path, false) { // if its not a folder or it also doesnt exist
 			continue
 		}
 
@@ -37,7 +37,7 @@ func programInPath(program string) bool {
 	return false
 }
 
-func CheckDir(path string, log bool) bool {
+func DirExists(path string, log bool) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if log {
 			fmt.Println(colorRed, "Directory \""+path+"\" does not exist!")
