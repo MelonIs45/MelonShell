@@ -210,24 +210,32 @@ func ListDirectory() {
 }
 
 func MakeDir(folder string) {
-	os.MkdirAll(folder, os.ModePerm)
+	err := os.MkdirAll(folder, os.ModePerm)
+	if err != nil {
+		return
+	}
 }
 
 func DelItem(pathArr []string) {
-
 	path := NewStructure(pathArr[0])
 
 	if len(path.dirChanges) == 1 {
 		if !DirExists(CurDir+"\\"+strings.TrimSuffix(path.dirChanges[0], "\n"), true) {
 			return
 		}
-		os.RemoveAll(CurDir + "\\" + strings.TrimSuffix(path.dirChanges[0], "\n"))
+		err := os.RemoveAll(CurDir + "\\" + strings.TrimSuffix(path.dirChanges[0], "\n"))
+		if err != nil {
+			return
+		}
 		return
 	} else {
 		if !DirExists(CurDir+"\\"+strings.Join(path.dirChanges, "\\"), true) {
 			return
 		}
-		os.RemoveAll(CurDir + "\\" + strings.Join(path.dirChanges, "\\"))
+		err := os.RemoveAll(CurDir + "\\" + strings.Join(path.dirChanges, "\\"))
+		if err != nil {
+			return
+		}
 		return
 	}
 }
