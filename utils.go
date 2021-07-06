@@ -47,3 +47,11 @@ func DirExists(path string, log bool) bool {
 	}
 	return true
 }
+
+func ValidateDir(originalDir []string) {
+	if !DirExists(CurDir, true) {
+		CurDir = strings.Join(originalDir, "\\")
+		Paths = Paths[:len(Paths)-1]
+		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
+	}
+}

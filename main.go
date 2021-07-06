@@ -61,25 +61,44 @@ func main() {
 
 		if input != "" {
 			split := strings.Split(input, " ")
+			//split = append(split, " ")
+			var newSplit []string
+			var concat []string
+			var foundQuote bool
 
 			for i := range split {
 				split[i] = strings.TrimSuffix(split[i], "\n")
+				if strings.Contains(split[i], "\"") {
+					if foundQuote {
+						foundQuote = false
+					} else {
+						foundQuote = true
+					}
+					concat = append(concat, strings.Replace(split[i], "\"", "", 1))
+				} else {
+					if foundQuote {
+						concat = append(concat, split[i])
+					} else {
+						newSplit = append(newSplit, strings.Join(concat, " "))
+						concat = []string{}
+					}
+				}
 			}
 
 			if strings.HasPrefix(split[0], "./") {
-				ExecutePathProgram(split[0], split)
+				ExecutePathProgram(newSplit[0], newSplit)
 			}
 			if strings.HasPrefix(split[0], "cd") {
-				ChangeDirectory(split[1:])
+				ChangeDirectory(newSplit[1:])
 			}
 			if strings.HasPrefix(split[0], "ls") {
 				ListDirectory()
 			}
 			if strings.HasPrefix(split[0], "db") || strings.HasPrefix(split[0], "debug") {
-				ShowDebugInfo(split[1:])
+				ShowDebugInfo(newSplit[1:])
 			}
 			if strings.HasPrefix(split[0], "h") || strings.HasPrefix(split[0], "help") {
-				ShowHelp(split[1:])
+				ShowHelp(newSplit[1:])
 			}
 			if strings.HasPrefix(split[0], "sys") {
 				ShowSystemInfo()
@@ -88,13 +107,13 @@ func main() {
 				os.Exit(1)
 			}
 			if strings.HasPrefix(split[0], "mkdir") {
-				MakeDir(split[1])
+				MakeDir(newSplit[1])
 			}
 			if strings.HasPrefix(split[0], "make") {
-				MakeItem(split[1])
+				MakeItem(newSplit[1])
 			}
 			if strings.HasPrefix(split[0], "rm") {
-				DelItem(split[1:])
+				DelItem(newSplit[1:])
 			}
 		}
 		fmt.Println()
@@ -128,6 +147,7 @@ func ExecutePathProgram(program string, command []string) {
 func ChangeDirectory(path []string) {
 	originalDir := strings.Split(CurDir, "\\")
 	structureAction := NewStructure(path[0])
+	fmt.Println(structureAction)
 
 	if strings.Contains(path[0], ":") {
 		CurDir = strings.Join(path, "\\")
@@ -142,6 +162,7 @@ func ChangeDirectory(path []string) {
 	}
 
 	if len(structureAction.dirChanges) == 1 && strings.TrimSuffix(structureAction.dirChanges[0], "\n") == ".." {
+		fmt.Println(CurDir)
 		CurDir = strings.Join(originalDir[:len(originalDir)-1], "\\")
 		Paths = Paths[:len(Paths)-1]
 		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
@@ -170,14 +191,6 @@ func ChangeDirectory(path []string) {
 	Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
 
 	ValidateDir(originalDir)
-}
-
-func ValidateDir(originalDir []string) {
-	if !DirExists(CurDir, true) {
-		CurDir = strings.Join(originalDir, "\\")
-		Paths = Paths[:len(Paths)-1]
-		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
-	}
 }
 
 func ListDirectory() {
