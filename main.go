@@ -76,7 +76,7 @@ func main() {
 				ListDirectory()
 			}
 			if strings.HasPrefix(split[0], "db") || strings.HasPrefix(split[0], "debug") {
-				GetDebugInfo(split[1:])
+				ShowDebugInfo(split[1:])
 			}
 			if strings.HasPrefix(split[0], "h") || strings.HasPrefix(split[0], "help") {
 				ShowHelp(split[1:])
@@ -89,6 +89,9 @@ func main() {
 			}
 			if strings.HasPrefix(split[0], "mkdir") {
 				MakeDir(split[1])
+			}
+			if strings.HasPrefix(split[0], "make") {
+				MakeItem(split[1])
 			}
 			if strings.HasPrefix(split[0], "rm") {
 				DelItem(split[1:])
@@ -216,6 +219,13 @@ func MakeDir(folder string) {
 	}
 }
 
+func MakeItem(name string) {
+	_, err := os.Create(name)
+	if err != nil {
+		return
+	}
+}
+
 func DelItem(pathArr []string) {
 	path := NewStructure(pathArr[0])
 
@@ -240,7 +250,7 @@ func DelItem(pathArr []string) {
 	}
 }
 
-func GetDebugInfo(prop []string) {
+func ShowDebugInfo(prop []string) {
 	var curDir, _ = os.Getwd()
 	var userName, _ = user.Current()
 	var hostName, _ = os.Hostname()
