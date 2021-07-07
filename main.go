@@ -9,7 +9,6 @@ import (
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -62,43 +61,43 @@ func main() {
 		if input != "" {
 			split := strings.Split(input, " ")
 			//split = append(split, " ")
-			var newSplit []string
-			var concat []string
-			var foundQuote bool
+			//var newSplit []string
+			//var concat []string
+			//var foundQuote bool
 
 			for i := range split {
 				split[i] = strings.TrimSuffix(split[i], "\n")
-				if strings.Contains(split[i], "\"") {
-					if foundQuote {
-						foundQuote = false
-					} else {
-						foundQuote = true
-					}
-					concat = append(concat, strings.Replace(split[i], "\"", "", 1))
-				} else {
-					if foundQuote {
-						concat = append(concat, split[i])
-					} else {
-						newSplit = append(newSplit, strings.Join(concat, " "))
-						concat = []string{}
-					}
-				}
+				//if strings.Contains(split[i], "\"") {
+				//	if foundQuote {
+				//		foundQuote = false
+				//	} else {
+				//		foundQuote = true
+				//	}
+				//	concat = append(concat, strings.Replace(split[i], "\"", "", 1))
+				//} else {
+				//	if foundQuote {
+				//		concat = append(concat, split[i])
+				//	} else {
+				//		newSplit = append(newSplit, strings.Join(concat, " "))
+				//		concat = []string{}
+				//	}
+				//}
 			}
 
 			if strings.HasPrefix(split[0], "./") {
-				ExecutePathProgram(newSplit[0], newSplit)
+				ExecutePathProgram(split[0], split)
 			}
 			if strings.HasPrefix(split[0], "cd") {
-				ChangeDirectory(newSplit[1:])
+				ChangeDirectory(split[1:])
 			}
 			if strings.HasPrefix(split[0], "ls") {
 				ListDirectory()
 			}
 			if strings.HasPrefix(split[0], "db") || strings.HasPrefix(split[0], "debug") {
-				ShowDebugInfo(newSplit[1:])
+				ShowDebugInfo(split[1:])
 			}
 			if strings.HasPrefix(split[0], "h") || strings.HasPrefix(split[0], "help") {
-				ShowHelp(newSplit[1:])
+				ShowHelp(split[1:])
 			}
 			if strings.HasPrefix(split[0], "sys") {
 				ShowSystemInfo()
@@ -107,13 +106,13 @@ func main() {
 				os.Exit(1)
 			}
 			if strings.HasPrefix(split[0], "mkdir") {
-				MakeDir(newSplit[1])
+				MakeDir(split[1])
 			}
 			if strings.HasPrefix(split[0], "make") {
-				MakeItem(newSplit[1])
+				MakeItem(split[1])
 			}
 			if strings.HasPrefix(split[0], "rm") {
-				DelItem(newSplit[1:])
+				DelItem(split[1:])
 			}
 		}
 		fmt.Println()
@@ -150,6 +149,12 @@ func ChangeDirectory(path []string) {
 	fmt.Println(structureAction)
 
 	if strings.Contains(path[0], ":") {
+		CurDir = strings.Join(path, "\\")
+		ValidateDir(originalDir)
+		return
+	}
+
+	if strings.Contains(path[0], "\\\\") {
 		CurDir = strings.Join(path, "\\")
 		ValidateDir(originalDir)
 		return
@@ -197,7 +202,8 @@ func ListDirectory() {
 	files, err := ioutil.ReadDir(CurDir + "\\")
 
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(colorRed, err)
+		fmt.Print(colorReset)
 	}
 
 	for _, file := range files {
