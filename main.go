@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"runtime"
 	"strings"
 	_ "strings"
 	"syscall"
@@ -30,17 +31,17 @@ var colorBlue = "\033[34m"
 var colorPurple = "\033[35m"
 var colorWhite = "\033[37m"
 
-//func init() {
-//	if runtime.GOOS == "windows" {
-//		colorReset = ""
-//		colorRed = ""
-//		colorGreen = ""
-//		colorYellow = ""
-//		colorBlue = ""
-//		colorPurple = ""
-//		colorWhite = ""
-//	}
-//}
+func init() {
+	if runtime.GOOS == "windows" {
+		colorReset = ""
+		colorRed = ""
+		colorGreen = ""
+		colorYellow = ""
+		colorBlue = ""
+		colorPurple = ""
+		colorWhite = ""
+	}
+}
 
 func main() {
 	Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
@@ -50,11 +51,11 @@ func main() {
 		userName, _ := user.Current()
 		hostName, _ := os.Hostname()
 
-		fmt.Print(colorGreen, strings.Split(userName.Username, "\\")[1]+"@"+hostName)
-		fmt.Print(colorWhite, ": ")
-		fmt.Print(colorPurple, CurDir)
-		fmt.Print(colorWhite, "\n> ")
-		fmt.Print(colorReset)
+		fmt.Printf("%s%s@%s", colorGreen, strings.Split(userName.Username, "\\")[1], hostName)
+		fmt.Printf("%s: ", colorWhite)
+		fmt.Printf("%s%s", colorPurple, CurDir)
+		fmt.Printf("%s\n> ", colorWhite)
+		fmt.Printf("%s", colorReset)
 
 		input, _ := reader.ReadString('\n')
 
@@ -114,6 +115,9 @@ func main() {
 			if strings.HasPrefix(split[0], "rm") {
 				DelItem(split[1:])
 			}
+			if strings.HasPrefix(split[0], "melon") {
+				Melon()
+			}
 		}
 		fmt.Println()
 	}
@@ -138,23 +142,22 @@ func ExecutePathProgram(program string, command []string) {
 		}
 
 	} else {
-		fmt.Println(colorRed, "File \""+fileRun+"\" is not recognised!")
-		fmt.Print(colorReset)
+		fmt.Printf("%s, File\"%s\" is not recognised!", colorRed, fileRun)
+		fmt.Printf("%s", colorReset)
 	}
 }
 
 func ChangeDirectory(path []string) {
 	originalDir := strings.Split(CurDir, "\\")
 	structureAction := NewStructure(path[0])
-	fmt.Println(structureAction)
 
-	if strings.Contains(path[0], ":") {
+	if strings.Contains(path[0], ":") { // drive directory
 		CurDir = strings.Join(path, "\\")
 		ValidateDir(originalDir)
 		return
 	}
 
-	if strings.Contains(path[0], "\\\\") {
+	if strings.Contains(path[0], "\\\\") { // server directory
 		CurDir = strings.Join(path, "\\")
 		ValidateDir(originalDir)
 		return
@@ -167,7 +170,6 @@ func ChangeDirectory(path []string) {
 	}
 
 	if len(structureAction.dirChanges) == 1 && strings.TrimSuffix(structureAction.dirChanges[0], "\n") == ".." {
-		fmt.Println(CurDir)
 		CurDir = strings.Join(originalDir[:len(originalDir)-1], "\\")
 		Paths = Paths[:len(Paths)-1]
 		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
@@ -202,33 +204,34 @@ func ListDirectory() {
 	files, err := ioutil.ReadDir(CurDir + "\\")
 
 	if err != nil {
-		fmt.Println(colorRed, err)
-		fmt.Print(colorReset)
+		fmt.Printf("%s%s", colorRed, err)
+		fmt.Printf("%s", colorReset)
 	}
 
 	for _, file := range files {
 		if file.IsDir() && strings.Contains(file.Name(), ".") {
-			fmt.Print(colorRed, file.Name())
-			fmt.Print(colorWhite, "/\n")
+			fmt.Printf("%s%s", colorRed, file.Name())
+			fmt.Printf("%s/\n", colorWhite)
 			continue
 		}
 
 		if file.IsDir() {
-			fmt.Print(colorBlue, file.Name())
-			fmt.Print(colorWhite, "/\n")
+			fmt.Printf("%s%s", colorBlue, file.Name())
+			fmt.Printf("%s/\n", colorWhite)
 			continue
 		}
 
 		if strings.HasPrefix(file.Name(), ".") {
-			fmt.Println(colorGreen, file.Name())
+			fmt.Printf("%s%s\n", colorGreen, file.Name())
 			continue
 		} else {
-			fmt.Print(colorWhite, "./")
-			fmt.Print(colorYellow, file.Name()+"\n")
+
+			fmt.Printf("%s./", colorWhite)
+			fmt.Printf("%s%s\n", colorYellow, file.Name())
 			continue
 		}
 	}
-	fmt.Print(colorReset)
+	fmt.Printf("%s", colorReset)
 }
 
 func MakeDir(folder string) {
@@ -341,6 +344,9 @@ func ShowHelp(prop []string) {
 		fmt.Print(colorWhite, "Delete Folder/File: ")
 		fmt.Print(colorYellow, "rm [ name ]")
 		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "Delete Folder/File: ")
+		fmt.Print(colorYellow, "rm [ name ]")
+		fmt.Println(colorReset)
 
 		return
 	}
@@ -388,4 +394,8 @@ func ShowSystemInfo() {
 	fmt.Print(colorWhite, "Drive: ")
 	fmt.Print(colorYellow, diskAmount)
 	fmt.Println(colorReset)
+}
+
+func Melon() {
+	fmt.Println("                                                                                \n                                                       ((((((///////            \n                                                       ((((((///////            \n                                                 //////%&&&&&#(((((///////      \n                                                 //////%&&&&&#(((((///////      \n                                                 //////%&&&&&#(((((///////      \n                                           ////////////%&&&&&&&&&&&#(((((///////\n                                           ////////////%&&&&&&&&&&&#(((((///////\n                                     ////////////.     */////%&&&&&#(((((///////\n                                     ////////////.     */////%&&&&&#(((((///////\n                               //////////////////,     */////%&&&&&#(((((///////\n                               //////////////////////////////%&&&&&#(((((///////\n                               //////////////////////////////%&&&&&#(((((///////\n                         //////////////////.     *///////////%&&&&&#(((((///////\n                         //////////////////.     *///////////%&&&&&#(((((///////\n                   //////////////////////////////////////////%&&&&&#(((((///////\n                   //////////////////////////////////////////%&&&&&#(((((///////\n                   //////////////////////////////////////////%&&&&&#(((((///////\n             //////////////////.     ,/////////////////%&&&&&&&&&&&#(((((///////\n             //////////////////.     ,/////////////////%&&&&&&&&&&&#(((((///////\n       ////////////.     */////////////////////////////%&&&&&#(((((///////      \n       ////////////.     */////////////////////////////%&&&&&#(((((///////      \n ((((((((((((((((((*.....*/////////////////((((((((((((%%%%%%((((((///////      \n ((((((%&&&&&&&&&&&#///////////////////////%&&&&&&&&&&&#(((((/////////////      \n ((((((%&&&&&&&&&&&#///////////////////////%&&&&&&&&&&&#(((((/////////////      \n ///////(((((%&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#(((((/////////////            \n ///////(((((%&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#(((((/////////////            \n       ///////(((((((((((((((((((((((((((((((((((/////////////                  \n       ///////(((((((((((((((((((((((((((((((((((/////////////                  \n       ///////(((((((((((((((((((((((((((((((((((/////////////                  \n             /////////////////////////////////////                              \n             /////////////////////////////////////                              ")
 }

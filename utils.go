@@ -40,8 +40,8 @@ func programInPath(program string) bool {
 func DirExists(path string, log bool) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if log {
-			fmt.Println(colorRed, "Directory \""+path+"\" does not exist!")
-			fmt.Print(colorReset)
+			fmt.Printf("%sDirectory \"%s\" does not exist!", colorRed, path)
+			fmt.Printf("%s", colorReset)
 		}
 		return false
 	}
