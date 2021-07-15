@@ -8,15 +8,6 @@ import (
 	"strings"
 )
 
-//func dirContains(s []os.FileInfo, program string) bool {
-//	for _, v := range s {
-//		if v.Name() == program {
-//			return true
-//		}
-//	}
-//	return false
-//}
-
 func programInPath(program string) bool {
 	for _, path := range Paths {
 		if strings.HasSuffix(path, ".exe") || !DirExists(path, false) { // if its not a folder or it also doesnt exist
@@ -40,8 +31,8 @@ func programInPath(program string) bool {
 func DirExists(path string, log bool) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if log {
-			fmt.Printf("Directory \"%s\" does not exist!", path)
-			//fmt.Printf("%s", colorReset)
+			fmt.Printf("%sDirectory \"%s\" does not exist!", colorRed, path)
+			fmt.Printf("%s", colorReset)
 		}
 		return false
 	}
@@ -54,4 +45,8 @@ func ValidateDir(originalDir []string) {
 		Paths = Paths[:len(Paths)-1]
 		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
 	}
+}
+
+func TrimLineEnd(str string) string {
+	return strings.TrimSuffix(strings.TrimSuffix(str, "\n"), "\r")
 }

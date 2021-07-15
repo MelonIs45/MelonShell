@@ -48,7 +48,7 @@ func init() {
 }
 
 func main() {
-	Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
+	Paths = append(Paths, TrimLineEnd(CurDir))
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
@@ -58,20 +58,24 @@ func main() {
 		fmt.Printf("%s%s@%s", colorGreen, strings.Split(userName.Username, "\\")[1], hostName)
 		fmt.Printf("%s: ", colorWhite)
 		fmt.Printf("%s%s", colorPurple, CurDir)
-		fmt.Printf("%s\r\n> ", colorWhite)
+		fmt.Printf("%s\n> ", colorWhite)
 		fmt.Printf("%s", colorReset)
 
 		input, _ := reader.ReadString('\n')
 
 		if input != "" {
-			split := strings.Split(input, " ")
+			split := strings.Split(input, "\"")
+			if len(split) == 1 {
+				split = strings.Split(input, " ")
+			}
 
 			for i := range split {
-				split[i] = strings.TrimSuffix(split[i], endLine)
+				split[i] = TrimLineEnd(split[i])
+				fmt.Printf("%s\n", split[i])
 			}
 
 			if strings.HasPrefix(split[0], "./") {
-				ExecutePathProgram(split[0], split)
+				ExecutePathProgram(split)
 			}
 			if strings.HasPrefix(split[0], "cd") {
 				ChangeDirectory(split[1:])
@@ -108,13 +112,14 @@ func main() {
 	}
 }
 
-func ExecutePathProgram(program string, command []string) {
-	fileRun := strings.TrimSuffix(strings.Split(program, "./")[1], endLine)
+func ExecutePathProgram(command []string) {
+	fileRun := TrimLineEnd(strings.Split(strings.Join(command, ""), "./")[1])
+	fmt.Printf("%s %s %s", colorYellow, fileRun, command)
 	if !strings.HasSuffix(fileRun, ".exe") {
 		fileRun += ".exe"
 	}
 
-	if programInPath(fileRun) {
+	if programInPath(TrimLineEnd(fileRun)) {
 		cmdInstance := exec.Command(ProgramPath+"\\"+fileRun, command[1:]...)
 		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
 		cmdInstance.Stdout = os.Stdout
@@ -127,7 +132,7 @@ func ExecutePathProgram(program string, command []string) {
 		}
 
 	} else {
-		fmt.Printf("%s, File\"%s\" is not recognised!", colorRed, fileRun)
+		fmt.Printf("%s, File \"%s\" is not recognised!", colorRed, fileRun)
 		fmt.Printf("%s", colorReset)
 	}
 }
@@ -154,10 +159,10 @@ func ChangeDirectory(path []string) {
 		return
 	}
 
-	if len(structureAction.dirChanges) == 1 && strings.TrimSuffix(structureAction.dirChanges[0], endLine) == ".." {
+	if len(structureAction.dirChanges) == 1 && TrimLineEnd(structureAction.dirChanges[0]) == ".." {
 		CurDir = strings.Join(originalDir[:len(originalDir)-1], "\\")
 		Paths = Paths[:len(Paths)-1]
-		Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
+		Paths = append(Paths, TrimLineEnd(CurDir))
 		ValidateDir(originalDir)
 		return
 	}
@@ -168,19 +173,19 @@ func ChangeDirectory(path []string) {
 		case "..":
 			CurDir = strings.Join(splitDir[:len(splitDir)-1], "\\")
 			Paths = Paths[:len(Paths)-1]
-			Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
+			Paths = append(Paths, TrimLineEnd(CurDir))
 		default:
 			if dir != endLine {
 				CurDir += "\\" + dir
 				Paths = Paths[:len(Paths)-1]
-				Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
+				Paths = append(Paths, TrimLineEnd(CurDir))
 			}
 		}
 	}
 
-	CurDir = strings.TrimSuffix(CurDir, endLine)
+	CurDir = TrimLineEnd(CurDir)
 	Paths = Paths[:len(Paths)-1]
-	Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
+	Paths = append(Paths, TrimLineEnd(CurDir))
 
 	ValidateDir(originalDir)
 }
@@ -196,23 +201,23 @@ func ListDirectory() {
 	for _, file := range files {
 		if file.IsDir() && strings.Contains(file.Name(), ".") {
 			fmt.Printf("%s%s", colorRed, file.Name())
-			fmt.Printf("%s/\r\n", colorWhite)
+			fmt.Printf("%s/\n", colorWhite)
 			continue
 		}
 
 		if file.IsDir() {
 			fmt.Printf("%s%s", colorBlue, file.Name())
-			fmt.Printf("%s/\r\n", colorWhite)
+			fmt.Printf("%s/\n", colorWhite)
 			continue
 		}
 
 		if strings.HasPrefix(file.Name(), ".") {
-			fmt.Printf("%s%s\r\n", colorGreen, file.Name())
+			fmt.Printf("%s%s\n", colorGreen, file.Name())
 			continue
 		} else {
 
 			fmt.Printf("%s./", colorWhite)
-			fmt.Printf("%s%s\r\n", colorYellow, file.Name())
+			fmt.Printf("%s%s\n", colorYellow, file.Name())
 			continue
 		}
 	}
@@ -237,10 +242,10 @@ func DelItem(pathArr []string) {
 	path := NewStructure(pathArr[0])
 
 	if len(path.dirChanges) == 1 {
-		if !DirExists(CurDir+"\\"+strings.TrimSuffix(path.dirChanges[0], endLine), true) {
+		if !DirExists(CurDir+"\\"+TrimLineEnd(path.dirChanges[0]), true) {
 			return
 		}
-		err := os.RemoveAll(CurDir + "\\" + strings.TrimSuffix(path.dirChanges[0], endLine))
+		err := os.RemoveAll(CurDir + "\\" + TrimLineEnd(path.dirChanges[0]))
 		if err != nil {
 			return
 		}
@@ -291,7 +296,7 @@ func ShowDebugInfo(prop []string) {
 		return
 	}
 
-	switch strings.TrimSuffix(strings.TrimSuffix(prop[0], "\n"), "\r") {
+	switch TrimLineEnd(prop[0]) {
 	case "dir":
 		fmt.Println(colorYellow, CurDir)
 	case "ver":
