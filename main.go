@@ -31,7 +31,7 @@ var colorBlue = "\033[34m"
 var colorPurple = "\033[35m"
 var colorWhite = "\033[37m"
 var endLine = "\n"
-var env = "jet"
+var env = "unix"
 
 func init() {
 	if runtime.GOOS == "windows" {
@@ -291,7 +291,7 @@ func ShowDebugInfo(prop []string) {
 		return
 	}
 
-	switch strings.TrimSuffix(prop[0], "\n") {
+	switch strings.TrimSuffix(strings.TrimSuffix(prop[0], "\n"), "\r") {
 	case "dir":
 		fmt.Println(colorYellow, CurDir)
 	case "ver":
@@ -310,8 +310,8 @@ func ShowDebugInfo(prop []string) {
 			colorPurple = "\033[35m"
 			colorWhite = "\033[37m"
 			endLine = "\n"
-			env = "jet"
-		} else if env == "jet" {
+			env = "unix"
+		} else if env == "unix" {
 			colorReset = ""
 			colorRed = ""
 			colorGreen = ""
