@@ -311,7 +311,7 @@ func ShowDebugInfo(prop []string) {
 			colorWhite = "\033[37m"
 			endLine = "\n"
 			env = "jet"
-		} else if env == "dos" {
+		} else if env == "jet" {
 			colorReset = ""
 			colorRed = ""
 			colorGreen = ""
