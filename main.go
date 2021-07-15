@@ -20,7 +20,7 @@ import (
 
 var CurDir, _ = os.Getwd()
 var ShellVer = "v0.0.1"
-var Paths = strings.Split(strings.ReplaceAll(os.Getenv("Path"), "\n", ""), ";")
+var Paths = strings.Split(strings.ReplaceAll(os.Getenv("Path"), endLine, ""), ";")
 var ProgramPath string
 
 var colorReset = "\033[0m"
@@ -30,6 +30,8 @@ var colorYellow = "\033[33m"
 var colorBlue = "\033[34m"
 var colorPurple = "\033[35m"
 var colorWhite = "\033[37m"
+var endLine = "\n"
+var env = "jet"
 
 func init() {
 	if runtime.GOOS == "windows" {
@@ -40,11 +42,13 @@ func init() {
 		colorBlue = ""
 		colorPurple = ""
 		colorWhite = ""
+		endLine = "\r\n"
+		env = "dos"
 	}
 }
 
 func main() {
-	Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
+	Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
@@ -54,35 +58,16 @@ func main() {
 		fmt.Printf("%s%s@%s", colorGreen, strings.Split(userName.Username, "\\")[1], hostName)
 		fmt.Printf("%s: ", colorWhite)
 		fmt.Printf("%s%s", colorPurple, CurDir)
-		fmt.Printf("%s\n> ", colorWhite)
+		fmt.Printf("%s\r\n> ", colorWhite)
 		fmt.Printf("%s", colorReset)
 
 		input, _ := reader.ReadString('\n')
 
 		if input != "" {
 			split := strings.Split(input, " ")
-			//split = append(split, " ")
-			//var newSplit []string
-			//var concat []string
-			//var foundQuote bool
 
 			for i := range split {
-				split[i] = strings.TrimSuffix(split[i], "\n")
-				//if strings.Contains(split[i], "\"") {
-				//	if foundQuote {
-				//		foundQuote = false
-				//	} else {
-				//		foundQuote = true
-				//	}
-				//	concat = append(concat, strings.Replace(split[i], "\"", "", 1))
-				//} else {
-				//	if foundQuote {
-				//		concat = append(concat, split[i])
-				//	} else {
-				//		newSplit = append(newSplit, strings.Join(concat, " "))
-				//		concat = []string{}
-				//	}
-				//}
+				split[i] = strings.TrimSuffix(split[i], endLine)
 			}
 
 			if strings.HasPrefix(split[0], "./") {
@@ -124,7 +109,7 @@ func main() {
 }
 
 func ExecutePathProgram(program string, command []string) {
-	fileRun := strings.TrimSuffix(strings.Split(program, "./")[1], "\n")
+	fileRun := strings.TrimSuffix(strings.Split(program, "./")[1], endLine)
 	if !strings.HasSuffix(fileRun, ".exe") {
 		fileRun += ".exe"
 	}
@@ -169,10 +154,10 @@ func ChangeDirectory(path []string) {
 		return
 	}
 
-	if len(structureAction.dirChanges) == 1 && strings.TrimSuffix(structureAction.dirChanges[0], "\n") == ".." {
+	if len(structureAction.dirChanges) == 1 && strings.TrimSuffix(structureAction.dirChanges[0], endLine) == ".." {
 		CurDir = strings.Join(originalDir[:len(originalDir)-1], "\\")
 		Paths = Paths[:len(Paths)-1]
-		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
+		Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
 		ValidateDir(originalDir)
 		return
 	}
@@ -183,19 +168,19 @@ func ChangeDirectory(path []string) {
 		case "..":
 			CurDir = strings.Join(splitDir[:len(splitDir)-1], "\\")
 			Paths = Paths[:len(Paths)-1]
-			Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
+			Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
 		default:
-			if dir != "\n" {
+			if dir != endLine {
 				CurDir += "\\" + dir
 				Paths = Paths[:len(Paths)-1]
-				Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
+				Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
 			}
 		}
 	}
 
-	CurDir = strings.TrimSuffix(CurDir, "\n")
+	CurDir = strings.TrimSuffix(CurDir, endLine)
 	Paths = Paths[:len(Paths)-1]
-	Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
+	Paths = append(Paths, strings.TrimSuffix(CurDir, endLine))
 
 	ValidateDir(originalDir)
 }
@@ -211,23 +196,23 @@ func ListDirectory() {
 	for _, file := range files {
 		if file.IsDir() && strings.Contains(file.Name(), ".") {
 			fmt.Printf("%s%s", colorRed, file.Name())
-			fmt.Printf("%s/\n", colorWhite)
+			fmt.Printf("%s/\r\n", colorWhite)
 			continue
 		}
 
 		if file.IsDir() {
 			fmt.Printf("%s%s", colorBlue, file.Name())
-			fmt.Printf("%s/\n", colorWhite)
+			fmt.Printf("%s/\r\n", colorWhite)
 			continue
 		}
 
 		if strings.HasPrefix(file.Name(), ".") {
-			fmt.Printf("%s%s\n", colorGreen, file.Name())
+			fmt.Printf("%s%s\r\n", colorGreen, file.Name())
 			continue
 		} else {
 
 			fmt.Printf("%s./", colorWhite)
-			fmt.Printf("%s%s\n", colorYellow, file.Name())
+			fmt.Printf("%s%s\r\n", colorYellow, file.Name())
 			continue
 		}
 	}
@@ -252,10 +237,10 @@ func DelItem(pathArr []string) {
 	path := NewStructure(pathArr[0])
 
 	if len(path.dirChanges) == 1 {
-		if !DirExists(CurDir+"\\"+strings.TrimSuffix(path.dirChanges[0], "\n"), true) {
+		if !DirExists(CurDir+"\\"+strings.TrimSuffix(path.dirChanges[0], endLine), true) {
 			return
 		}
-		err := os.RemoveAll(CurDir + "\\" + strings.TrimSuffix(path.dirChanges[0], "\n"))
+		err := os.RemoveAll(CurDir + "\\" + strings.TrimSuffix(path.dirChanges[0], endLine))
 		if err != nil {
 			return
 		}
@@ -299,6 +284,9 @@ func ShowDebugInfo(prop []string) {
 		fmt.Println(colorReset)
 		fmt.Print(colorWhite, "%PATH% Environment Variable: ")
 		fmt.Print(colorYellow, Paths)
+		fmt.Println(colorReset)
+		fmt.Print(colorWhite, "Terminal Behaviour: ")
+		fmt.Print(colorYellow, env)
 
 		return
 	}
@@ -312,6 +300,29 @@ func ShowDebugInfo(prop []string) {
 		fmt.Println(colorYellow, curDir)
 	case "path":
 		fmt.Println(colorYellow, Paths)
+	case "switch":
+		if env == "dos" {
+			colorReset = "\033[0m"
+			colorRed = "\033[31m"
+			colorGreen = "\033[32m"
+			colorYellow = "\033[33m"
+			colorBlue = "\033[34m"
+			colorPurple = "\033[35m"
+			colorWhite = "\033[37m"
+			endLine = "\n"
+			env = "jet"
+		} else if env == "dos" {
+			colorReset = ""
+			colorRed = ""
+			colorGreen = ""
+			colorYellow = ""
+			colorBlue = ""
+			colorPurple = ""
+			colorWhite = ""
+			endLine = "\r\n"
+			env = "dos"
+		}
+
 	}
 }
 
@@ -397,5 +408,5 @@ func ShowSystemInfo() {
 }
 
 func Melon() {
-	fmt.Println("                                                                                \n                                                       ((((((///////            \n                                                       ((((((///////            \n                                                 //////%&&&&&#(((((///////      \n                                                 //////%&&&&&#(((((///////      \n                                                 //////%&&&&&#(((((///////      \n                                           ////////////%&&&&&&&&&&&#(((((///////\n                                           ////////////%&&&&&&&&&&&#(((((///////\n                                     ////////////.     */////%&&&&&#(((((///////\n                                     ////////////.     */////%&&&&&#(((((///////\n                               //////////////////,     */////%&&&&&#(((((///////\n                               //////////////////////////////%&&&&&#(((((///////\n                               //////////////////////////////%&&&&&#(((((///////\n                         //////////////////.     *///////////%&&&&&#(((((///////\n                         //////////////////.     *///////////%&&&&&#(((((///////\n                   //////////////////////////////////////////%&&&&&#(((((///////\n                   //////////////////////////////////////////%&&&&&#(((((///////\n                   //////////////////////////////////////////%&&&&&#(((((///////\n             //////////////////.     ,/////////////////%&&&&&&&&&&&#(((((///////\n             //////////////////.     ,/////////////////%&&&&&&&&&&&#(((((///////\n       ////////////.     */////////////////////////////%&&&&&#(((((///////      \n       ////////////.     */////////////////////////////%&&&&&#(((((///////      \n ((((((((((((((((((*.....*/////////////////((((((((((((%%%%%%((((((///////      \n ((((((%&&&&&&&&&&&#///////////////////////%&&&&&&&&&&&#(((((/////////////      \n ((((((%&&&&&&&&&&&#///////////////////////%&&&&&&&&&&&#(((((/////////////      \n ///////(((((%&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#(((((/////////////            \n ///////(((((%&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#(((((/////////////            \n       ///////(((((((((((((((((((((((((((((((((((/////////////                  \n       ///////(((((((((((((((((((((((((((((((((((/////////////                  \n       ///////(((((((((((((((((((((((((((((((((((/////////////                  \n             /////////////////////////////////////                              \n             /////////////////////////////////////                              ")
+	fmt.Println("                                                                                \r\n                                                       ((((((///////            \r\n                                                       ((((((///////            \r\n                                                 //////%&&&&&#(((((///////      \r\n                                                 //////%&&&&&#(((((///////      \r\n                                                 //////%&&&&&#(((((///////      \r\n                                           ////////////%&&&&&&&&&&&#(((((///////\r\n                                           ////////////%&&&&&&&&&&&#(((((///////\r\n                                     ////////////.     */////%&&&&&#(((((///////\r\n                                     ////////////.     */////%&&&&&#(((((///////\r\n                               //////////////////,     */////%&&&&&#(((((///////\r\n                               //////////////////////////////%&&&&&#(((((///////\r\n                               //////////////////////////////%&&&&&#(((((///////\r\n                         //////////////////.     *///////////%&&&&&#(((((///////\r\n                         //////////////////.     *///////////%&&&&&#(((((///////\r\n                   //////////////////////////////////////////%&&&&&#(((((///////\r\n                   //////////////////////////////////////////%&&&&&#(((((///////\r\n                   //////////////////////////////////////////%&&&&&#(((((///////\r\n             //////////////////.     ,/////////////////%&&&&&&&&&&&#(((((///////\r\n             //////////////////.     ,/////////////////%&&&&&&&&&&&#(((((///////\r\n       ////////////.     */////////////////////////////%&&&&&#(((((///////      \r\n       ////////////.     */////////////////////////////%&&&&&#(((((///////      \r\n ((((((((((((((((((*.....*/////////////////((((((((((((%%%%%%((((((///////      \r\n ((((((%&&&&&&&&&&&#///////////////////////%&&&&&&&&&&&#(((((/////////////      \r\n ((((((%&&&&&&&&&&&#///////////////////////%&&&&&&&&&&&#(((((/////////////      \r\n ///////(((((%&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#(((((/////////////            \r\n ///////(((((%&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#(((((/////////////            \r\n       ///////(((((((((((((((((((((((((((((((((((/////////////                  \r\n       ///////(((((((((((((((((((((((((((((((((((/////////////                  \r\n       ///////(((((((((((((((((((((((((((((((((((/////////////                  \r\n             /////////////////////////////////////                              \r\n             /////////////////////////////////////                              ")
 }
