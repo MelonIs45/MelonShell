@@ -113,8 +113,7 @@ func main() {
 }
 
 func ExecutePathProgram(command []string) {
-	fileRun := TrimLineEnd(strings.Split(strings.Join(command, ""), "./")[1])
-	fmt.Printf("%s %s %s", colorYellow, fileRun, command)
+	fileRun := TrimLineEnd(strings.Split(strings.Split(strings.Join(command, " "), "./")[1], " ")[0])
 	if !strings.HasSuffix(fileRun, ".exe") {
 		fileRun += ".exe"
 	}
@@ -130,9 +129,8 @@ func ExecutePathProgram(command []string) {
 		if err != nil {
 			fmt.Println(err)
 		}
-
 	} else {
-		fmt.Printf("%s, File \"%s\" is not recognised!", colorRed, fileRun)
+		fmt.Printf("%sFile \"%s\" is not recognised!", colorRed, fileRun)
 		fmt.Printf("%s", colorReset)
 	}
 }
