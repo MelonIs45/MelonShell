@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/dustin/go-humanize"
+	"github.com/fatih/color"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
@@ -22,6 +23,13 @@ var CurDir, _ = os.Getwd()
 var ShellVer = "v0.0.1"
 var Paths = strings.Split(strings.ReplaceAll(os.Getenv("Path"), endLine, ""), ";")
 var ProgramPath string
+
+var Red = color.New(color.FgRed)
+var Green = color.New(color.FgHiGreen)
+var Yellow = color.New(color.FgYellow)
+var Cyan = color.New(color.FgCyan)
+var Magenta = color.New(color.FgHiMagenta)
+var White = color.New(color.FgWhite)
 
 var colorReset = "\033[0m"
 var colorRed = "\033[31m"
@@ -55,11 +63,10 @@ func main() {
 		userName, _ := user.Current()
 		hostName, _ := os.Hostname()
 
-		fmt.Printf("%s%s@%s", colorGreen, strings.Split(userName.Username, "\\")[1], hostName)
-		fmt.Printf("%s: ", colorWhite)
-		fmt.Printf("%s%s", colorPurple, CurDir)
-		fmt.Printf("%s\n> ", colorWhite)
-		fmt.Printf("%s", colorReset)
+		Green.Printf("%s@%s", strings.Split(userName.Username, "\\")[1], hostName)
+		White.Printf(": ")
+		Magenta.Printf("%s", CurDir)
+		White.Printf("\n> ")
 
 		input, _ := reader.ReadString('\n')
 
@@ -71,7 +78,6 @@ func main() {
 
 			for i := range split {
 				split[i] = TrimLineEnd(split[i])
-				fmt.Printf("%s\n", split[i])
 			}
 
 			if strings.HasPrefix(split[0], "./") {
@@ -130,8 +136,7 @@ func ExecutePathProgram(command []string) {
 			fmt.Println(err)
 		}
 	} else {
-		fmt.Printf("%sFile \"%s\" is not recognised!", colorRed, fileRun)
-		fmt.Printf("%s", colorReset)
+		Red.Printf("File \"%s\" is not recognised!", fileRun)
 	}
 }
 
@@ -192,34 +197,31 @@ func ListDirectory() {
 	files, err := ioutil.ReadDir(CurDir + "\\")
 
 	if err != nil {
-		fmt.Printf("%s%s", colorRed, err)
-		fmt.Printf("%s", colorReset)
+		Red.Printf("%s", err)
 	}
 
 	for _, file := range files {
 		if file.IsDir() && strings.Contains(file.Name(), ".") {
-			fmt.Printf("%s%s", colorRed, file.Name())
-			fmt.Printf("%s/\n", colorWhite)
+			Red.Printf("%s", file.Name())
+			White.Printf("/\n")
 			continue
 		}
 
 		if file.IsDir() {
-			fmt.Printf("%s%s", colorBlue, file.Name())
-			fmt.Printf("%s/\n", colorWhite)
+			Cyan.Printf("%s", file.Name())
+			White.Printf("/\n")
 			continue
 		}
 
 		if strings.HasPrefix(file.Name(), ".") {
-			fmt.Printf("%s%s\n", colorGreen, file.Name())
+			Green.Printf("%s\n", file.Name())
 			continue
 		} else {
-
-			fmt.Printf("%s./", colorWhite)
-			fmt.Printf("%s%s\n", colorYellow, file.Name())
+			White.Printf("./", file.Name())
+			Yellow.Printf("%s\n", file.Name())
 			continue
 		}
 	}
-	fmt.Printf("%s", colorReset)
 }
 
 func MakeDir(folder string) {

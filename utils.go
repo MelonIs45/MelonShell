@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -31,8 +30,7 @@ func programInPath(program string) bool {
 func DirExists(path string, log bool) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		if log {
-			fmt.Printf("%sDirectory \"%s\" does not exist!", colorRed, path)
-			fmt.Printf("%s", colorReset)
+			Red.Printf("Directory \"%s\" does not exist!", path)
 		}
 		return false
 	}
