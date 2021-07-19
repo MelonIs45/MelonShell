@@ -13,7 +13,6 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"runtime"
 	"strings"
 	_ "strings"
 	"syscall"
@@ -30,30 +29,7 @@ var Yellow = color.New(color.FgYellow)
 var Cyan = color.New(color.FgCyan)
 var Magenta = color.New(color.FgHiMagenta)
 var White = color.New(color.FgWhite)
-
-var colorReset = "\033[0m"
-var colorRed = "\033[31m"
-var colorGreen = "\033[32m"
-var colorYellow = "\033[33m"
-var colorBlue = "\033[34m"
-var colorPurple = "\033[35m"
-var colorWhite = "\033[37m"
-var endLine = "\n"
-var env = "unix"
-
-func init() {
-	if runtime.GOOS == "windows" {
-		colorReset = ""
-		colorRed = ""
-		colorGreen = ""
-		colorYellow = ""
-		colorBlue = ""
-		colorPurple = ""
-		colorWhite = ""
-		endLine = "\r\n"
-		env = "dos"
-	}
-}
+var endLine = "\r\n"
 
 func main() {
 	Paths = append(Paths, TrimLineEnd(CurDir))
@@ -101,10 +77,7 @@ func main() {
 			if strings.HasPrefix(split[0], "exit") {
 				os.Exit(1)
 			}
-			if strings.HasPrefix(split[0], "mkdir") {
-				MakeDir(split[1])
-			}
-			if strings.HasPrefix(split[0], "make") {
+			if strings.HasPrefix(split[0], "mk") {
 				MakeItem(split[1])
 			}
 			if strings.HasPrefix(split[0], "rm") {
@@ -124,7 +97,7 @@ func ExecutePathProgram(command []string) {
 		fileRun += ".exe"
 	}
 
-	if programInPath(TrimLineEnd(fileRun)) {
+	if ProgramInPath(TrimLineEnd(fileRun), false) {
 		cmdInstance := exec.Command(ProgramPath+"\\"+fileRun, command[1:]...)
 		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
 		cmdInstance.Stdout = os.Stdout
@@ -156,7 +129,7 @@ func ChangeDirectory(path []string) {
 		return
 	}
 
-	if strings.HasPrefix(path[0], "~") {
+	if strings.HasPrefix(path[0], "~") { // root directory
 		CurDir, _ = os.Getwd()
 		ValidateDir(originalDir)
 		return
@@ -217,24 +190,24 @@ func ListDirectory() {
 			Green.Printf("%s\n", file.Name())
 			continue
 		} else {
-			White.Printf("./", file.Name())
+			White.Printf("./")
 			Yellow.Printf("%s\n", file.Name())
 			continue
 		}
 	}
 }
 
-func MakeDir(folder string) {
-	err := os.MkdirAll(folder, os.ModePerm)
-	if err != nil {
-		return
-	}
-}
-
 func MakeItem(name string) {
-	_, err := os.Create(name)
-	if err != nil {
-		return
+	if strings.Contains(name, ".") {
+		_, err := os.Create(name)
+		if err != nil {
+			return
+		}
+	} else {
+		err := os.MkdirAll(name, os.ModePerm)
+		if err != nil {
+			return
+		}
 	}
 }
 
@@ -268,101 +241,58 @@ func ShowDebugInfo(prop []string) {
 	var hostName, _ = os.Hostname()
 
 	if len(prop) == 0 {
-		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "MelonShell ")
-		fmt.Print(colorYellow, ShellVer)
-		fmt.Println(colorReset)
-		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "User: ")
-		fmt.Print(colorYellow, userName.Name)
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Host: ")
-		fmt.Print(colorYellow, hostName)
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Shell Location: ")
-		fmt.Print(colorYellow, curDir)
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Current Directory: ")
-		fmt.Print(colorYellow, CurDir)
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "%PATH% Environment Variable: ")
-		fmt.Print(colorYellow, Paths)
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Terminal Behaviour: ")
-		fmt.Print(colorYellow, env)
+		Green.Printf("~~~~~~~~~~~~~~~~~~~~~~\n")
+		White.Printf("MelonShell ")
+		Yellow.Printf("%s\n", ShellVer)
+		Green.Printf("~~~~~~~~~~~~~~~~~~~~~~\n")
+		White.Printf("User: ")
+		Yellow.Printf("%s\n", userName.Username)
+		White.Printf("Host: ")
+		Yellow.Printf("%s\n", hostName)
+		White.Printf("Shell Location: ")
+		Yellow.Printf("%s\n", curDir)
+		White.Printf("Current Directory: ")
+		Yellow.Printf("%s\n", CurDir)
+		White.Printf("%%PATH%% Environment Variable: ")
+		Yellow.Printf("%s\n", Paths)
 
 		return
 	}
 
 	switch TrimLineEnd(prop[0]) {
-	case "dir":
-		fmt.Println(colorYellow, CurDir)
-	case "ver":
-		fmt.Println(colorYellow, ShellVer)
-	case "loc":
-		fmt.Println(colorYellow, curDir)
-	case "path":
-		fmt.Println(colorYellow, Paths)
-	case "switch":
-		if env == "dos" {
-			colorReset = "\033[0m"
-			colorRed = "\033[31m"
-			colorGreen = "\033[32m"
-			colorYellow = "\033[33m"
-			colorBlue = "\033[34m"
-			colorPurple = "\033[35m"
-			colorWhite = "\033[37m"
-			endLine = "\n"
-			env = "unix"
-		} else if env == "unix" {
-			colorReset = ""
-			colorRed = ""
-			colorGreen = ""
-			colorYellow = ""
-			colorBlue = ""
-			colorPurple = ""
-			colorWhite = ""
-			endLine = "\r\n"
-			env = "dos"
-		}
-
+	case "-dir":
+		Yellow.Printf("%s\n", CurDir)
+	case "-ver":
+		Yellow.Printf("%s\n", ShellVer)
+	case "-loc":
+		Yellow.Printf("%s\n", curDir)
+	case "-path":
+		Yellow.Printf("%s\n", Paths)
+	case "-exes":
+		_ = ProgramInPath("", true)
 	}
 }
 
 func ShowHelp(prop []string) {
 	if len(prop) == 0 {
-		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "MelonShell Help")
-		fmt.Println(colorReset)
-		fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Change Directory: ")
-		fmt.Print(colorYellow, "cd [ .. | ../ | < folder-name > ]")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "List Directory: ")
-		fmt.Print(colorYellow, "ls")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Run Program: ")
-		fmt.Print(colorYellow, "./[ app-name ]")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Show System Information: ")
-		fmt.Print(colorYellow, "sys")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Show Debug Information: ")
-		fmt.Print(colorYellow, "db < dir | ver | loc | path >")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Make New Directory: ")
-		fmt.Print(colorYellow, "mkdir [ name ]")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Delete Folder/File: ")
-		fmt.Print(colorYellow, "rm [ name ]")
-		fmt.Println(colorReset)
-		fmt.Print(colorWhite, "Delete Folder/File: ")
-		fmt.Print(colorYellow, "rm [ name ]")
-		fmt.Println(colorReset)
+		Green.Printf("~~~~~~~~~~~~~~~~~~~~~~\n")
+		White.Printf("MelonShell Help\n")
+		White.Printf("[] = mandatory, <> = optional, | = either\n")
+		Green.Printf("~~~~~~~~~~~~~~~~~~~~~~\n")
+		White.Printf("Change Directory: ")
+		Yellow.Printf("cd [ .. | ../ | folder-name ]\n")
+		White.Printf("List Directory: ")
+		Yellow.Printf("ls\n")
+		White.Printf("Run Program: ")
+		Yellow.Printf("./[ app-name ]\n")
+		White.Printf("Show System Information: ")
+		Yellow.Printf("sys\n")
+		White.Printf("Show Debug Information:  ")
+		Yellow.Printf("db < -dir | -ver | -loc | -path | -exes >\n")
+		White.Printf("Make Folder/File: ")
+		Yellow.Printf("mk [ name ]\n")
+		White.Printf("Delete Folder/File: ")
+		Yellow.Printf("rm [ name ]\n")
 
 		return
 	}
@@ -392,24 +322,17 @@ func ShowSystemInfo() {
 		diskAmount = humanize.IBytes(dStat.Total)
 	}
 
-	fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
-	fmt.Println(colorReset)
-	fmt.Print(colorWhite, "System Information")
-	fmt.Println(colorReset)
-	fmt.Print(colorGreen, "~~~~~~~~~~~~~~~~~~~~~~")
-	fmt.Println(colorReset)
-	fmt.Print(colorWhite, "Operating System: ")
-	fmt.Print(colorYellow, osName)
-	fmt.Println(colorReset)
-	fmt.Print(colorWhite, "CPU: ")
-	fmt.Print(colorYellow, cpuName)
-	fmt.Println(colorReset)
-	fmt.Print(colorWhite, "RAM: ")
-	fmt.Print(colorYellow, ramAmount)
-	fmt.Println(colorReset)
-	fmt.Print(colorWhite, "Drive: ")
-	fmt.Print(colorYellow, diskAmount)
-	fmt.Println(colorReset)
+	Green.Printf("~~~~~~~~~~~~~~~~~~~~~~\n")
+	White.Printf("System Information\n")
+	Green.Printf("~~~~~~~~~~~~~~~~~~~~~~\n")
+	White.Printf("Operating System: ")
+	Yellow.Printf("%s\n", osName)
+	White.Printf("CPU: ")
+	Yellow.Printf("%s\n", cpuName)
+	White.Printf("RAM Amount: ")
+	Yellow.Printf("%s\n", ramAmount)
+	White.Printf("Disk Amount: ")
+	Yellow.Printf("%s\n", diskAmount)
 }
 
 func Melon() {

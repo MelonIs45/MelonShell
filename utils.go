@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func programInPath(program string) bool {
+func ProgramInPath(program string, logExes bool) bool {
 	for _, path := range Paths {
 		if strings.HasSuffix(path, ".exe") || !DirExists(path, false) { // if its not a folder or it also doesnt exist
 			continue
@@ -18,9 +18,14 @@ func programInPath(program string) bool {
 			log.Fatal(err)
 		}
 		for _, file := range files { // over each file
-			if strings.HasSuffix(file.Name(), ".exe") && file.Name() == program {
-				ProgramPath = path
-				return true
+			if strings.HasSuffix(file.Name(), ".exe") {
+				if logExes {
+					Yellow.Printf("%s\n", file.Name())
+				}
+				if file.Name() == program {
+					ProgramPath = path
+					return true
+				}
 			}
 		}
 	}
