@@ -18,11 +18,15 @@ import (
 	"syscall"
 )
 
+// Current directory, the initial directory that the program starts in
 var CurDir, _ = os.Getwd()
 var ShellVer = "v0.0.1"
+
+// Path Environment Variable
 var Paths = strings.Split(strings.ReplaceAll(os.Getenv("Path"), endLine, ""), ";")
 var ProgramPath string
 
+// Color variables
 var Red = color.New(color.FgRed)
 var Green = color.New(color.FgHiGreen)
 var Yellow = color.New(color.FgYellow)
@@ -32,13 +36,15 @@ var White = color.New(color.FgWhite)
 var endLine = "\r\n"
 
 func main() {
-	Paths = append(Paths, TrimLineEnd(CurDir))
-	reader := bufio.NewReader(os.Stdin)
+	Paths = append(Paths, TrimLineEnd(CurDir)) // Add initial directory to path variable
+	reader := bufio.NewReader(os.Stdin)        // Create input stream reader to scan input
 
 	for {
 		userName, _ := user.Current()
 		hostName, _ := os.Hostname()
 
+		// This chunk is for outputting the line above the input character
+		// in the format: user-name@host-name: current-directory
 		Green.Printf("%s@%s", strings.Split(userName.Username, "\\")[1], hostName)
 		White.Printf(": ")
 		Magenta.Printf("%s", CurDir)
@@ -48,7 +54,8 @@ func main() {
 
 		if input != "" {
 			split := strings.Split(input, "\"")
-			if len(split) == 1 {
+			if len(split) == 1 { // If the length of split is 1, this means that there are
+				// no " in the input, so spaces are used to separate the input.
 				split = strings.Split(input, " ")
 			}
 
@@ -92,12 +99,14 @@ func main() {
 }
 
 func ExecutePathProgram(command []string) {
+	// fileRun is the input after ./
 	fileRun := TrimLineEnd(strings.Split(strings.Split(strings.Join(command, " "), "./")[1], " ")[0])
 	if !strings.HasSuffix(fileRun, ".exe") {
 		fileRun += ".exe"
 	}
 
 	if ProgramInPath(TrimLineEnd(fileRun), false) {
+		// This chunk initialises the start of a new subprocess
 		cmdInstance := exec.Command(ProgramPath+"\\"+fileRun, command[1:]...)
 		cmdInstance.SysProcAttr = &syscall.SysProcAttr{HideWindow: false}
 		cmdInstance.Stdout = os.Stdout
@@ -114,28 +123,31 @@ func ExecutePathProgram(command []string) {
 }
 
 func ChangeDirectory(path []string) {
+	// Directory before anything is changed
 	originalDir := strings.Split(CurDir, "\\")
 	structureAction := NewStructure(path[0])
 
-	if strings.Contains(path[0], ":") { // drive directory
-		CurDir = strings.Join(path, "\\")
+	if strings.Contains(path[0], ":") { // Drive directory
+		CurDir = strings.Join(path, "\\") // Changes the drive
 		ValidateDir(originalDir)
 		return
 	}
 
-	if strings.Contains(path[0], "\\\\") { // server directory
-		CurDir = strings.Join(path, "\\")
+	if strings.Contains(path[0], "\\\\") { // Server directory
+		CurDir = strings.Join(path, "\\") // Changes the server
 		ValidateDir(originalDir)
 		return
 	}
 
-	if strings.HasPrefix(path[0], "~") { // root directory
-		CurDir, _ = os.Getwd()
+	if strings.HasPrefix(path[0], "~") { // Root directory
+		CurDir, _ = os.Getwd() // Goes back to the root directory where the program first started
 		ValidateDir(originalDir)
 		return
 	}
 
 	if len(structureAction.dirChanges) == 1 && TrimLineEnd(structureAction.dirChanges[0]) == ".." {
+		// This removes the last directory after \ in the current directory
+		// acting as a way of moving one directory down.
 		CurDir = strings.Join(originalDir[:len(originalDir)-1], "\\")
 		Paths = Paths[:len(Paths)-1]
 		Paths = append(Paths, TrimLineEnd(CurDir))
@@ -143,15 +155,18 @@ func ChangeDirectory(path []string) {
 		return
 	}
 
+	// This gets ran when there are more than 1 directory changes in the input
 	for _, dir := range structureAction.dirChanges {
 		splitDir := strings.Split(CurDir, "\\")
 		switch dir {
 		case "..":
+			// Removes last directory from current directory
 			CurDir = strings.Join(splitDir[:len(splitDir)-1], "\\")
 			Paths = Paths[:len(Paths)-1]
 			Paths = append(Paths, TrimLineEnd(CurDir))
 		default:
 			if dir != endLine {
+				// Adds directory to current directory
 				CurDir += "\\" + dir
 				Paths = Paths[:len(Paths)-1]
 				Paths = append(Paths, TrimLineEnd(CurDir))
@@ -159,6 +174,7 @@ func ChangeDirectory(path []string) {
 		}
 	}
 
+	// Adds the newly changed directory to the list of path directories.
 	CurDir = TrimLineEnd(CurDir)
 	Paths = Paths[:len(Paths)-1]
 	Paths = append(Paths, TrimLineEnd(CurDir))
@@ -168,25 +184,24 @@ func ChangeDirectory(path []string) {
 
 func ListDirectory() {
 	files, err := ioutil.ReadDir(CurDir + "\\")
-
 	if err != nil {
 		Red.Printf("%s", err)
 	}
 
 	for _, file := range files {
-		if file.IsDir() && strings.Contains(file.Name(), ".") {
+		if file.IsDir() && strings.Contains(file.Name(), ".") { // If the file is a folder and begins with a '.'
 			Red.Printf("%s", file.Name())
 			White.Printf("/\n")
 			continue
 		}
 
-		if file.IsDir() {
+		if file.IsDir() { // If the file is a folder
 			Cyan.Printf("%s", file.Name())
 			White.Printf("/\n")
 			continue
 		}
 
-		if strings.HasPrefix(file.Name(), ".") {
+		if strings.HasPrefix(file.Name(), ".") { // If the file begins with a '.'
 			Green.Printf("%s\n", file.Name())
 			continue
 		} else {
@@ -198,41 +213,31 @@ func ListDirectory() {
 }
 
 func MakeItem(name string) {
-	if strings.Contains(name, ".") {
-		_, err := os.Create(name)
+	Red.Printf(name)
+	if strings.Contains(name, ".") { // If the name contains a '.', this means its a file
+		_, err := os.Create(CurDir + "\\" + name)
 		if err != nil {
 			return
 		}
-	} else {
-		err := os.MkdirAll(name, os.ModePerm)
+	} else { // Else its a folder
+		err := os.MkdirAll(CurDir+"\\"+name, os.ModePerm)
 		if err != nil {
 			return
 		}
 	}
 }
 
-func DelItem(pathArr []string) {
+func DelItem(pathArr []string) { // Fix
 	path := NewStructure(pathArr[0])
 
-	if len(path.dirChanges) == 1 {
-		if !DirExists(CurDir+"\\"+TrimLineEnd(path.dirChanges[0]), true) {
-			return
-		}
-		err := os.RemoveAll(CurDir + "\\" + TrimLineEnd(path.dirChanges[0]))
-		if err != nil {
-			return
-		}
-		return
-	} else {
-		if !DirExists(CurDir+"\\"+strings.Join(path.dirChanges, "\\"), true) {
-			return
-		}
-		err := os.RemoveAll(CurDir + "\\" + strings.Join(path.dirChanges, "\\"))
-		if err != nil {
-			return
-		}
+	if !DirExists(CurDir+"\\"+strings.Join(path.dirChanges, "\\"), true) {
 		return
 	}
+	err := os.RemoveAll(CurDir + "\\" + strings.Join(path.dirChanges, "\\"))
+	if err != nil {
+		return
+	}
+	return
 }
 
 func ShowDebugInfo(prop []string) {
