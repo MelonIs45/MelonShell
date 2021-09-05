@@ -63,6 +63,10 @@ func main() {
 				split[i] = TrimLineEnd(split[i])
 			}
 
+			//
+			// ALL THE FUNCTIONS WITHIN THE PROGRAM
+			//
+
 			if strings.HasPrefix(split[0], "./") {
 				ExecutePathProgram(split)
 			}
@@ -304,6 +308,7 @@ func ShowHelp(prop []string) {
 }
 
 func ShowSystemInfo() {
+	// Sets all the variables to "Unknown"
 	const unknown = "Unknown"
 	osName, cpuName, ramAmount, diskAmount := unknown, unknown, unknown, unknown
 

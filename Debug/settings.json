@@ -1,0 +1,11 @@
+{
+  "Video": {
+    "Width": 1280,
+    "Height": 720,
+    "Fullscreen": false,
+    "VSync": false
+  },
+  "Audio": {
+    "MasterVolume": 58
+  }
+}

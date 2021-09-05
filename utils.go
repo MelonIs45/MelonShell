@@ -44,6 +44,7 @@ func DirExists(path string, log bool) bool {
 
 func ValidateDir(originalDir []string) {
 	if !DirExists(CurDir, true) {
+		// If directory exists, add it to the Paths array
 		CurDir = strings.Join(originalDir, "\\")
 		Paths = Paths[:len(Paths)-1]
 		Paths = append(Paths, strings.TrimSuffix(CurDir, "\n"))
