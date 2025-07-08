@@ -1,7 +1,7 @@
 # A custom console made in go (originally created in 2021).
 
 ## To run (tested on go1.23.10):
-- run `go run .` in the same directory as the `main.go` file.
+- use `go run .` in the same directory as the `main.go` file.
 
 This will get you into the main console environment
 
